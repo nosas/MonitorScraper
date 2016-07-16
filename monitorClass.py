@@ -46,10 +46,8 @@ class Monitor:
         elif self.website == "acerrecertified":
             if len(self.soup.find_all('div', {'class': 'alert alert-danger'})) != 0:
                 return False
-
         elif self.website == "newegg":
             itemData = getNeweggData(self.soup)
-
             for item in itemData.split(","):
                 if "product_instock" in item:
                     # If there's a 0, that means it's out of stock
@@ -58,7 +56,6 @@ class Monitor:
                     break
 
         return True
-
 
     def getPrice(self):
         if self.website == "ebay":
