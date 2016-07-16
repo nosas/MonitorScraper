@@ -4,8 +4,10 @@ from login import gmail_login
 import email
 import time
 
+
 def main():
     print "----" * 3 + "\nBenq XL2730Z\n" + "----" * 3
+    # TODO Read/write cache from file
     monitorCache = {}
     gmail = gmail_login()
     to_email = ["sasonreza@gmail.com"]
