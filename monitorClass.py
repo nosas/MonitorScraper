@@ -1,21 +1,21 @@
 from bs4 import *
 from urllib import urlopen
-from monitorList import *
-import time
 
 
+# Retrieving NewEgg data is tough, so I had to pull the json data from the page
+# and parse the product_instock variable from it
 def getNeweggData(soup):
         lineIndex = 0
         startIndex = 0
         soupSplit = soup.text.splitlines()
-        itemJsonData = "{"
+        itemData = "{"
 
         while lineIndex < len(soupSplit):
             currentLine = soupSplit[lineIndex]
 
             # If the beginning of utag_data has been found, append the following lines and break once end of var
             if startIndex != 0:
-                itemJsonData += currentLine.lstrip()
+                itemData += currentLine.lstrip()
                 if "}" in currentLine:
                     break
             elif "var utag_data = {" in currentLine:
@@ -23,7 +23,7 @@ def getNeweggData(soup):
 
             lineIndex += 1
 
-        return itemJsonData
+        return itemData
 
 
 class Monitor:
@@ -46,7 +46,19 @@ class Monitor:
         elif self.website == "acerrecertified":
             if len(self.soup.find_all('div', {'class': 'alert alert-danger'})) != 0:
                 return False
+
+        elif self.website == "newegg":
+            itemData = getNeweggData(self.soup)
+
+            for item in itemData.split(","):
+                if "product_instock" in item:
+                    # If there's a 0, that means it's out of stock
+                    if "0" in item.split(":")[1][2]:
+                        return False
+                    break
+
         return True
+
 
     def getPrice(self):
         if self.website == "ebay":
@@ -64,6 +76,11 @@ class Monitor:
             # I don't really care for the price of these. Just want to know when they're in stock
             for item in self.soup.find_all('span', {'id': 'unitprice'}):
                 return item.text.replace("$", "")
+
+        elif self.website == "newegg":
+            # <meta content="399.99" itemprop="price"/>
+            for item in self.soup.find_all('meta', {'itemprop': 'price'}):
+                return item['content']
 
     def getName(self):
         nameList = {"acer": "xg270hu", "asus": "mg278q", "benq": "xl2730z"}
@@ -94,42 +111,9 @@ class Monitor:
                "Price   : {2}\n" \
                "Avail   : {3}\n" \
                "URL     : {4}\n".format(self.website,
-                                        self.name + " " + self.model, self.price, self.available, self.url)
+                                        str(self.name) + " " + str(self.model), self.price, self.available, self.url)
 
 
-def main():
-    print "----" * 3 + "\nBenq XL2730Z\n" + "----" * 3
-    monitorCache = {}
-    for url in monitorURLs:
-        newMonitor = Monitor(url)
-
-        # If the monitor becomes available, add it to cache or email me
-        if newMonitor.available:
-            # If monitor is not in cache, add the url and price to cache
-            if newMonitor.url not in monitorCache:
-                monitorCache[newMonitor.url] = newMonitor.price
-                # If the monitor is Acer, immediately email me
-                # Make sure the website isn't NewEgg because they're always in stock w/ bad price
-                if newMonitor.name == "acer" and newMonitor.website != "newegg":
-                    print "email me"
-                    # TODO If monitor is Acer, then email me immediately
-            # Else, if the monitor is in cache, check if current price was lowered
-            else:
-                # If current price is lower than one in cache, email me and replace price in cache
-                if float(newMonitor.price) < float(monBenq[newMonitor.url]):
-                    monitorCache[newMonitor.url] = newMonitor.price
-                    # TODO: Notify via email that there's a new lowest price
-            # print newMonitor.__str__()
-        else:
-            if newMonitor.url in monitorCache:
-                del monitorCache[newMonitor.url]
-        print newMonitor.__str__()
-
-while True:
-    main()
-    print "\nSleeping for 5 minutes"
-    time.sleep(300)
-    print "=-=-=-=-=-=-" * 3
 
 
 
