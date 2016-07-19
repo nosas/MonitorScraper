@@ -1,4 +1,4 @@
-from monitorList import monitorURLs
+from monitorList import *
 from monitorClass import Monitor
 from login import gmail_login
 import email

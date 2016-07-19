@@ -33,7 +33,8 @@ class Monitor:
         self.soup = BeautifulSoup(urlopen(url), "html.parser")
         self.available = self.getStock()
         self.price = self.getPrice()
-        self.name, self.model = self.getName()
+        self.name = self.getName()
+        self.model = self.getModel(self.name)
 
     def getStock(self):
         if self.website == "ebay":
@@ -84,19 +85,23 @@ class Monitor:
 
         if self.website == "ebay":
             for name in nameList.keys():
-                if name in str(self.soup.find('h1', {'itemprop': 'name'})).lower():
-                    return name, nameList[name]
+                if name in str(self.soup.find_all('h1', {'itemprop': 'name'})).lower():
+                    return name
 
         elif self.website == "newegg":
             for name in nameList.keys():
-                if name in str(self.soup.find('span', {'itemprop': 'name'})).lower():
-                    return name, nameList[name]
+                if name in str(self.soup.find_all('span', {'itemprop': 'name'})).lower():
+                    return name
 
         elif self.website == "benqdirect":
-            return "benq", nameList["benq"]
+            return "benq"
 
         elif self.website == "acerrecertified":
-            return "acer", nameList["acer"]
+            return "acer"
+
+    def getModel(self, name):
+        nameList = {"acer": "xg270hu", "asus": "mg278q", "benq": "xl2730z"}
+        return nameList[name]
 
     def __str__(self):
         return "Website : {0}\n" \
