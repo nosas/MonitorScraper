@@ -10,7 +10,7 @@ def main():
     # TODO Read/write cache from file
     monitorCache = {}
     gmail = gmail_login()
-    to_email = ["sasonreza@gmail.com"]
+    to_email = ["EMAIL@ADDRESS.COM"]
 
     for url in monitorURLs:
         newMonitor = Monitor(url)
